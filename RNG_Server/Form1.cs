@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace RNG_Server
@@ -16,15 +16,17 @@ namespace RNG_Server
     {
         private RNG_Server Server;
         private Socket ServerSocket;
+        private Thread Service;
         public Form1()
         {
             InitializeComponent();
             Server = new RNG_Server("127.0.0.1");
+            Service = new Thread(new ThreadStart(Server_Task));
         }
 
         private void btnOpenConn_Click(object sender, EventArgs e)
         {
-            Server.StartServer(ref ServerSocket);
+            Service.Start();
             status.ForeColor = Color.ForestGreen;
         }
 
@@ -32,6 +34,11 @@ namespace RNG_Server
         {
             Server.StopServer(ref ServerSocket);
             status.ForeColor = Color.Coral;
+        }
+
+        private void Server_Task()
+        {
+            Server.StartServer(ref ServerSocket);
         }
     }
     public class RNG_Server
