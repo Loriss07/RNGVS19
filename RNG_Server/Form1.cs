@@ -17,23 +17,37 @@ namespace RNG_Server
         private RNG_Server Server;
         private Socket ServerSocket;
         private Thread Service;
+        private ManualResetEvent Pause;
+        private bool flag;
         public Form1()
         {
             InitializeComponent();
             Server = new RNG_Server("127.0.0.1");
             Service = new Thread(new ThreadStart(Server_Task));
+            Pause = new ManualResetEvent(false);
+            flag = false;
         }
 
         private void btnOpenConn_Click(object sender, EventArgs e)
         {
-            Service.Start();
+            if (!flag)
+            {
+                Service.Start();
+                flag = true;
+            }
+            else
+            {
+                Pause.Set();
+            }
             status.ForeColor = Color.ForestGreen;
         }
 
         private void btnCloseConn_Click(object sender, EventArgs e)
         {
-            Server.StopServer(ref ServerSocket);
+            
+            Server.StopServer(ref ServerSocket,ref Pause);
             status.ForeColor = Color.Coral;
+            Pause.Reset();
         }
 
         private void Server_Task()
@@ -120,8 +134,10 @@ namespace RNG_Server
 
         }
 
-        public void StopServer(ref Socket socket)
+        public void StopServer(ref Socket socket,ref ManualResetEvent e)
         {
+            e.Reset();
+            //e.WaitOne();
             socket.Close();
         }
 
